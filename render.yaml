@@ -1,10 +1,9 @@
 services:
   - type: web
     name: prescription-management-system
-    env: php
+    env: docker
     plan: free
-    buildCommand: ""
-    startCommand: "php -S 0.0.0.0:$PORT -t ."
+    dockerfilePath: Dockerfile
     autoDeploy: true
     envVars:
       - key: DB_HOST
