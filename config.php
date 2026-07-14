@@ -4,21 +4,33 @@
 // Database Connection
 // ======================================
 
-// Database Configuration
-$host = getenv("DB_HOST") ?: "localhost";
-$username = getenv("DB_USERNAME") ?: "Zubby";
-$password = getenv("DB_PASSWORD") ?: "Zubby2026!";
-$database = getenv("DB_NAME") ?: "xefrbpcu_prescription_management_system";
+// Database Configuration (read from environment variables)
+$host = getenv("DB_HOST");
+$username = getenv("DB_USERNAME");
+$password = getenv("DB_PASSWORD");
+$database = getenv("DB_NAME");
 $charset = getenv("DB_CHARSET") ?: "utf8mb4";
+$port = getenv("DB_PORT") ?: 3306;
 
-// Create Connection
-$conn = mysqli_connect($host, $username, $password, $database);
+// Validate required settings
+if (empty($host) || empty($username) || empty($password) || empty($database)) {
+    die("Database configuration missing. Please set DB_HOST, DB_USERNAME, DB_PASSWORD and DB_NAME environment variables in your Render service.");
+}
 
-// Check Connection
-if (!$conn) {
-    die("Database Connection Failed: " . mysqli_connect_error());
+// Use exceptions for mysqli errors to provide clearer diagnostics
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+// Create Connection (use TCP port)
+try {
+    $conn = mysqli_connect($host, $username, $password, $database, (int)$port);
+} catch (mysqli_sql_exception $e) {
+    $msg = "Database Connection Failed: " . $e->getMessage();
+    if ($host === 'localhost') {
+        $msg .= " — note: using 'localhost' attempts a Unix socket connection. On Render set DB_HOST to your database's TCP host (IP or hostname) and set DB_PORT if needed.";
+    }
+    die($msg);
 }
 
 // Set Character Encoding
-mysqli_set_charset($conn, "utf8");
+mysqli_set_charset($conn, $charset);
 ?>
